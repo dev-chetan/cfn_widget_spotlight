@@ -81,15 +81,13 @@ class _SpotlightDemoScreenState extends State<SpotlightDemoScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         ),
         SpotlightTarget(
-          key: _createKey,
-          title: 'Keep Members Updated',
+          key: _profileKey,
+          title: 'Your Profile',
           description:
-              'Use this action to publish updates, events, insights, or '
-              'important notices for your community.',
-          placement: SpotlightPlacement.above,
-          shape: SpotlightShape.roundedRectangle,
-          borderRadius: BorderRadius.circular(100),
-          padding: const EdgeInsets.all(6),
+              'Open your profile to update personal details and preferences.',
+          placement: SpotlightPlacement.below,
+          shape: SpotlightShape.circle,
+          padding: const EdgeInsets.all(8),
           nextLabel: 'Got it',
         ),
       ],
