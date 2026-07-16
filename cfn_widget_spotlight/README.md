@@ -4,6 +4,10 @@ Customizable spotlight overlays and guided tours for Flutter. The package can
 highlight one widget, multiple widgets at the same time, or a sequence of
 single/multi-target steps.
 
+## Demo
+
+![Widget Spotlight demo](screenshots/widget_spotlight_demo.gif)
+
 ## Features
 
 - Sharp cutouts over a dimmed, blurred backdrop
@@ -19,12 +23,17 @@ single/multi-target steps.
 
 ## Installation
 
-Add the package to the consuming app. For a local checkout:
+Add the package from pub.dev:
+
+```shell
+flutter pub add cfn_widget_spotlight
+```
+
+Or add it manually:
 
 ```yaml
 dependencies:
-  cfn_widget_spotlight:
-    path: cfn_widget_spotlight
+  cfn_widget_spotlight: ^0.0.2
 ```
 
 Then import it:

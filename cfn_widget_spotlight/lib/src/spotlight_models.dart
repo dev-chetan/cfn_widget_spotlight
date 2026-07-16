@@ -3,31 +3,85 @@ import 'package:flutter/material.dart';
 import 'spotlight_controller.dart';
 
 /// Where a target's content card should be placed.
-enum SpotlightPlacement { auto, above, below, left, right }
+enum SpotlightPlacement {
+  /// Chooses the side with enough available space automatically.
+  auto,
+
+  /// Places the content card above the target when possible.
+  above,
+
+  /// Places the content card below the target when possible.
+  below,
+
+  /// Places the content card to the left of the target when possible.
+  left,
+
+  /// Places the content card to the right of the target when possible.
+  right,
+}
 
 /// How a card is aligned along the edge of its target.
-enum SpotlightAlignment { start, center, end }
+enum SpotlightAlignment {
+  /// Aligns the leading edge of the card and target.
+  start,
+
+  /// Centers the card along the target edge.
+  center,
+
+  /// Aligns the trailing edge of the card and target.
+  end,
+}
 
 /// The shape cut out around a highlighted widget.
-enum SpotlightShape { roundedRectangle, rectangle, circle, oval }
+enum SpotlightShape {
+  /// Uses [SpotlightTarget.borderRadius] to create a rounded rectangle.
+  roundedRectangle,
+
+  /// Uses a rectangle with square corners.
+  rectangle,
+
+  /// Uses a circle based on the target's shortest dimension.
+  circle,
+
+  /// Uses an oval that fills the target bounds.
+  oval,
+}
 
 /// Why a spotlight overlay was closed.
-enum SpotlightDismissReason { completed, skipped, barrierTap, programmatic }
+enum SpotlightDismissReason {
+  /// The user advanced through the final step.
+  completed,
+
+  /// The tour was closed with [SpotlightController.skip].
+  skipped,
+
+  /// A dismissible backdrop was tapped.
+  barrierTap,
+
+  /// The tour was closed with [SpotlightController.dismiss].
+  programmatic,
+}
 
 /// The result returned when a spotlight tour closes.
 @immutable
 class SpotlightResult {
+  /// Creates the result returned by a closed spotlight session.
   const SpotlightResult({required this.reason, required this.lastStepIndex});
 
+  /// The action that closed the overlay.
   final SpotlightDismissReason reason;
+
+  /// The zero-based step index that was visible when the overlay closed.
   final int lastStepIndex;
 
+  /// Whether the user advanced through the final tour step.
   bool get completed => reason == SpotlightDismissReason.completed;
 }
 
 /// Information passed to a custom target content builder.
 @immutable
 class SpotlightContentDetails {
+  /// Creates details supplied to a [SpotlightContentBuilder].
   const SpotlightContentDetails({
     required this.controller,
     required this.stepIndex,
@@ -37,23 +91,44 @@ class SpotlightContentDetails {
     required this.targetRect,
   });
 
+  /// Controls navigation and dismissal for the active tour.
   final SpotlightController controller;
+
+  /// The zero-based index of the active tour step.
   final int stepIndex;
+
+  /// The total number of steps in the tour.
   final int stepCount;
+
+  /// The zero-based index of this target within its step.
   final int targetIndex;
+
+  /// The number of targets displayed in the active step.
   final int targetCount;
+
+  /// The measured overlay-space bounds of the highlighted target.
   final Rect targetRect;
 
+  /// Whether the active step is the first step in the tour.
   bool get isFirstStep => stepIndex == 0;
+
+  /// Whether the active step is the final step in the tour.
   bool get isLastStep => stepIndex == stepCount - 1;
 }
 
+/// Builds fully custom content for a [SpotlightTarget].
+///
+/// Use [SpotlightContentDetails.controller] to provide custom navigation
+/// controls from the returned widget.
 typedef SpotlightContentBuilder =
     Widget Function(BuildContext context, SpotlightContentDetails details);
 
 /// A widget to highlight and the content associated with it.
 @immutable
 class SpotlightTarget {
+  /// Creates a target and its associated guide content.
+  ///
+  /// At least one of [title], [description], or [contentBuilder] is required.
   const SpotlightTarget({
     required this.key,
     this.title,
@@ -81,19 +156,41 @@ class SpotlightTarget {
 
   /// The key of a mounted widget to spotlight.
   final GlobalKey key;
+
+  /// The heading displayed by the default content card.
   final String? title;
+
+  /// The body displayed by the default content card.
   final String? description;
 
   /// Replaces the package's default card completely.
   final SpotlightContentBuilder? contentBuilder;
+
+  /// The preferred side on which to place the content card.
   final SpotlightPlacement placement;
+
+  /// The card alignment along the selected target edge.
   final SpotlightAlignment alignment;
+
+  /// The cutout shape used to reveal the target.
   final SpotlightShape shape;
+
+  /// Space added around the measured target bounds.
   final EdgeInsets padding;
+
+  /// Corner radii used when [shape] is rounded rectangle.
   final BorderRadius borderRadius;
+
+  /// Minimum distance between the target, pointer, and content card.
   final double gap;
+
+  /// A final positional adjustment applied to the card and pointer.
   final Offset offset;
+
+  /// The maximum width allowed for the content card.
   final double maxContentWidth;
+
+  /// Whether to draw a pointer between the card and target.
   final bool showPointer;
 
   /// Whether the default card includes progress and next/back controls.
@@ -104,29 +201,43 @@ class SpotlightTarget {
   /// This is ignored when [onTargetTap] is supplied because the overlay handles
   /// the tap in that case.
   final bool allowTargetInteraction;
+
+  /// Handles taps in the highlighted region instead of passing them through.
   final VoidCallback? onTargetTap;
+
+  /// Overrides the next or done label in the default card.
   final String? nextLabel;
+
+  /// Overrides the back label in the default card.
   final String? backLabel;
+
+  /// Describes this target to accessibility services.
   final String? semanticLabel;
 }
 
 /// One page in a tour. A page can highlight one or many widgets at once.
 @immutable
 class SpotlightStep {
+  /// Creates a step that displays one or more targets simultaneously.
   SpotlightStep({required List<SpotlightTarget> targets, this.semanticLabel})
     : assert(targets.isNotEmpty),
       targets = List.unmodifiable(targets);
 
+  /// Creates a step containing exactly one [target].
   SpotlightStep.single(SpotlightTarget target, {this.semanticLabel})
     : targets = List.unmodifiable([target]);
 
+  /// The immutable targets displayed during this step.
   final List<SpotlightTarget> targets;
+
+  /// Describes this step to accessibility services.
   final String? semanticLabel;
 }
 
 /// Visual defaults for an entire spotlight tour.
 @immutable
 class SpotlightThemeData {
+  /// Creates visual defaults for spotlight cutouts, cards, and navigation.
   const SpotlightThemeData({
     this.barrierColor = const Color(0xA60B1220),
     this.blurSigma = 2.5,
@@ -167,32 +278,82 @@ class SpotlightThemeData {
     this.backLabel = 'Back',
   });
 
+  /// Color painted over content outside highlighted cutouts.
   final Color barrierColor;
+
+  /// Gaussian blur strength applied behind the barrier.
   final double blurSigma;
+
+  /// Color of the soft halo surrounding a highlighted target.
   final Color highlightColor;
+
+  /// Color of the target cutout border.
   final Color highlightBorderColor;
+
+  /// Width of the target cutout border.
   final double highlightBorderWidth;
+
+  /// Elevation of the highlighted target above the barrier.
   final double highlightElevation;
+
+  /// Shadow color used by the elevated target cutout.
   final Color highlightShadowColor;
+
+  /// Background color of default content cards.
   final Color cardColor;
+
+  /// Corner radii of default content cards.
   final BorderRadius cardBorderRadius;
+
+  /// Inner padding of default content cards.
   final EdgeInsets cardPadding;
+
+  /// Material elevation of default content cards.
   final double cardElevation;
+
+  /// Text style used for default card titles.
   final TextStyle titleStyle;
+
+  /// Text style used for default card descriptions.
   final TextStyle descriptionStyle;
+
+  /// Text style used for the step progress label.
   final TextStyle progressStyle;
+
+  /// Background color of the primary navigation button.
   final Color primaryColor;
+
+  /// Foreground color of the primary navigation button.
   final Color primaryForegroundColor;
+
+  /// Foreground color of the back button.
   final Color secondaryForegroundColor;
+
+  /// Fill color of pointers connecting cards and targets.
   final Color pointerColor;
+
+  /// Width and height of card pointers.
   final Size pointerSize;
+
+  /// Minimum distance maintained between cards and screen edges.
   final EdgeInsets screenPadding;
+
+  /// Duration of the overlay entrance and step transition animation.
   final Duration animationDuration;
+
+  /// Curve of the overlay entrance and step transition animation.
   final Curve animationCurve;
+
+  /// Default label used to advance to a later step.
   final String nextLabel;
+
+  /// Default label used to complete the final step.
   final String doneLabel;
+
+  /// Default label used to return to an earlier step.
   final String backLabel;
 
+  /// Returns a copy with the supplied visual values replaced.
   SpotlightThemeData copyWith({
     Color? barrierColor,
     double? blurSigma,
