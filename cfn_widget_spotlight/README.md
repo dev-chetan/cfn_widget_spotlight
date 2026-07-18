@@ -33,7 +33,7 @@ Or add it manually:
 
 ```yaml
 dependencies:
-  cfn_widget_spotlight: ^0.0.2
+  cfn_widget_spotlight: ^0.0.3
 ```
 
 Then import it:
@@ -196,6 +196,119 @@ await CfnWidgetSpotlight.show(
 Per-target customization includes placement, alignment, shape, padding, border
 radius, card gap/offset, maximum width, pointer visibility, labels, semantics,
 and target interaction.
+
+### Per-target card and button styling
+
+Customize the default card without rebuilding its content:
+
+```dart
+SpotlightTarget(
+  key: targetKey,
+  title: 'Custom appearance',
+  description: 'The standard content with your own visual design.',
+  cardColor: const Color(0xFF171B2E),
+  cardBorderRadius: BorderRadius.circular(32),
+  cardPadding: const EdgeInsets.all(24),
+  cardElevation: 18,
+  titleStyle: const TextStyle(
+    color: Colors.white,
+    fontSize: 20,
+    fontWeight: FontWeight.bold,
+  ),
+  descriptionStyle: const TextStyle(color: Colors.white70),
+  primaryButtonStyle: FilledButton.styleFrom(
+    backgroundColor: Colors.orange,
+    foregroundColor: Colors.black,
+    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(14),
+    ),
+  ),
+);
+```
+
+Use `navigationBuilder` when the progress label and buttons need completely
+custom widgets:
+
+```dart
+SpotlightTarget(
+  key: targetKey,
+  title: 'Custom navigation',
+  navigationBuilder: (context, navigation) {
+    return Row(
+      children: [
+        Text(navigation.progressLabel),
+        const Spacer(),
+        if (navigation.canGoBack)
+          IconButton(
+            onPressed: navigation.back,
+            icon: const Icon(Icons.chevron_left),
+          ),
+        IconButton(
+          onPressed: navigation.next,
+          icon: const Icon(Icons.chevron_right),
+        ),
+      ],
+    );
+  },
+);
+```
+
+Set `primaryButtonStyle` and `secondaryButtonStyle` on
+`SpotlightThemeData` to apply button styling to the entire tour. Use
+`contentBuilder` when the complete card layout should be replaced.
+
+### Rich content while the keyboard is open
+
+Cards avoid the software keyboard by default. Use `bodyBuilder` for rich rows
+while keeping the standard card, progress, and navigation controls:
+
+```dart
+SpotlightTarget(
+  key: sentimentKey,
+  title: "What's your outlook?",
+  placement: SpotlightPlacement.below,
+  cardBorderRadius: BorderRadius.circular(24),
+  bodyBuilder: (context, details) => const Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      ListTile(
+        dense: true,
+        contentPadding: EdgeInsets.zero,
+        leading: CircleAvatar(
+          backgroundColor: Colors.green,
+          child: Icon(Icons.trending_up, color: Colors.white),
+        ),
+        title: Text('Bullish'),
+        subtitle: Text('Price will go up'),
+      ),
+      ListTile(
+        dense: true,
+        contentPadding: EdgeInsets.zero,
+        leading: CircleAvatar(
+          backgroundColor: Colors.red,
+          child: Icon(Icons.trending_down, color: Colors.white),
+        ),
+        title: Text('Bearish'),
+        subtitle: Text('Price will go down'),
+      ),
+      ListTile(
+        dense: true,
+        contentPadding: EdgeInsets.zero,
+        leading: CircleAvatar(
+          backgroundColor: Colors.orange,
+          child: Icon(Icons.horizontal_rule, color: Colors.white),
+        ),
+        title: Text('Neutral'),
+        subtitle: Text('Price will stay within a range'),
+      ),
+    ],
+  ),
+);
+```
+
+Set `avoidKeyboard: false` on `SpotlightThemeData` only when guide cards are
+intentionally allowed behind the keyboard.
 
 ## Target interaction
 

@@ -123,6 +123,63 @@ class SpotlightContentDetails {
 typedef SpotlightContentBuilder =
     Widget Function(BuildContext context, SpotlightContentDetails details);
 
+/// Builds rich body content inside the package's default card.
+///
+/// Unlike [SpotlightContentBuilder], this preserves the default card surface,
+/// title, navigation row, and all card/button styling.
+typedef SpotlightBodyBuilder =
+    Widget Function(BuildContext context, SpotlightContentDetails details);
+
+/// Information passed to a custom navigation-row builder.
+@immutable
+class SpotlightNavigationDetails {
+  /// Creates navigation details for the default spotlight card.
+  const SpotlightNavigationDetails({
+    required this.controller,
+    required this.stepIndex,
+    required this.stepCount,
+    required this.nextLabel,
+    required this.backLabel,
+  });
+
+  /// Controls the active spotlight tour.
+  final SpotlightController controller;
+
+  /// The zero-based index of the active tour step.
+  final int stepIndex;
+
+  /// The total number of tour steps.
+  final int stepCount;
+
+  /// The resolved label for the next or done action.
+  final String nextLabel;
+
+  /// The resolved label for the back action.
+  final String backLabel;
+
+  /// A ready-to-display progress label such as `2 of 4`.
+  String get progressLabel => '${stepIndex + 1} of $stepCount';
+
+  /// Whether the back action should be available.
+  bool get canGoBack => stepIndex > 0;
+
+  /// Whether the active step is the final step.
+  bool get isLastStep => stepIndex == stepCount - 1;
+
+  /// Advances the tour or completes it from the final step.
+  void next() => controller.next();
+
+  /// Returns to the previous step when [canGoBack] is true.
+  void back() => controller.previous();
+
+  /// Closes the active tour as skipped.
+  void skip() => controller.skip();
+}
+
+/// Builds a completely custom navigation row inside the default card.
+typedef SpotlightNavigationBuilder =
+    Widget Function(BuildContext context, SpotlightNavigationDetails details);
+
 /// A widget to highlight and the content associated with it.
 @immutable
 class SpotlightTarget {
@@ -134,6 +191,8 @@ class SpotlightTarget {
     this.title,
     this.description,
     this.contentBuilder,
+    this.bodyBuilder,
+    this.navigationBuilder,
     this.placement = SpotlightPlacement.auto,
     this.alignment = SpotlightAlignment.center,
     this.shape = SpotlightShape.roundedRectangle,
@@ -149,9 +208,23 @@ class SpotlightTarget {
     this.nextLabel,
     this.backLabel,
     this.semanticLabel,
+    this.cardColor,
+    this.cardBorderRadius,
+    this.cardPadding,
+    this.cardElevation,
+    this.titleStyle,
+    this.descriptionStyle,
+    this.progressStyle,
+    this.primaryButtonStyle,
+    this.secondaryButtonStyle,
   }) : assert(
-         title != null || description != null || contentBuilder != null,
-         'Provide title, description, or contentBuilder.',
+         title != null ||
+             description != null ||
+             contentBuilder != null ||
+             bodyBuilder != null ||
+             navigationBuilder != null,
+         'Provide title, description, contentBuilder, bodyBuilder, or '
+         'navigationBuilder.',
        );
 
   /// The key of a mounted widget to spotlight.
@@ -165,6 +238,12 @@ class SpotlightTarget {
 
   /// Replaces the package's default card completely.
   final SpotlightContentBuilder? contentBuilder;
+
+  /// Adds rich content between the default description and navigation row.
+  final SpotlightBodyBuilder? bodyBuilder;
+
+  /// Replaces only the progress and button row in the default card.
+  final SpotlightNavigationBuilder? navigationBuilder;
 
   /// The preferred side on which to place the content card.
   final SpotlightPlacement placement;
@@ -213,6 +292,33 @@ class SpotlightTarget {
 
   /// Describes this target to accessibility services.
   final String? semanticLabel;
+
+  /// Overrides [SpotlightThemeData.cardColor] for this target.
+  final Color? cardColor;
+
+  /// Overrides [SpotlightThemeData.cardBorderRadius] for this target.
+  final BorderRadius? cardBorderRadius;
+
+  /// Overrides [SpotlightThemeData.cardPadding] for this target.
+  final EdgeInsets? cardPadding;
+
+  /// Overrides [SpotlightThemeData.cardElevation] for this target.
+  final double? cardElevation;
+
+  /// Overrides [SpotlightThemeData.titleStyle] for this target.
+  final TextStyle? titleStyle;
+
+  /// Overrides [SpotlightThemeData.descriptionStyle] for this target.
+  final TextStyle? descriptionStyle;
+
+  /// Overrides [SpotlightThemeData.progressStyle] for this target.
+  final TextStyle? progressStyle;
+
+  /// Overrides the primary next or done button style for this target.
+  final ButtonStyle? primaryButtonStyle;
+
+  /// Overrides the secondary back button style for this target.
+  final ButtonStyle? secondaryButtonStyle;
 }
 
 /// One page in a tour. A page can highlight one or many widgets at once.
@@ -276,6 +382,9 @@ class SpotlightThemeData {
     this.nextLabel = 'Next',
     this.doneLabel = 'Done',
     this.backLabel = 'Back',
+    this.primaryButtonStyle,
+    this.secondaryButtonStyle,
+    this.avoidKeyboard = true,
   });
 
   /// Color painted over content outside highlighted cutouts.
@@ -353,6 +462,15 @@ class SpotlightThemeData {
   /// Default label used to return to an earlier step.
   final String backLabel;
 
+  /// Optional style applied to every default next or done button.
+  final ButtonStyle? primaryButtonStyle;
+
+  /// Optional style applied to every default back button.
+  final ButtonStyle? secondaryButtonStyle;
+
+  /// Whether cards avoid the visible software keyboard by default.
+  final bool avoidKeyboard;
+
   /// Returns a copy with the supplied visual values replaced.
   SpotlightThemeData copyWith({
     Color? barrierColor,
@@ -380,6 +498,9 @@ class SpotlightThemeData {
     String? nextLabel,
     String? doneLabel,
     String? backLabel,
+    ButtonStyle? primaryButtonStyle,
+    ButtonStyle? secondaryButtonStyle,
+    bool? avoidKeyboard,
   }) => SpotlightThemeData(
     barrierColor: barrierColor ?? this.barrierColor,
     blurSigma: blurSigma ?? this.blurSigma,
@@ -408,5 +529,8 @@ class SpotlightThemeData {
     nextLabel: nextLabel ?? this.nextLabel,
     doneLabel: doneLabel ?? this.doneLabel,
     backLabel: backLabel ?? this.backLabel,
+    primaryButtonStyle: primaryButtonStyle ?? this.primaryButtonStyle,
+    secondaryButtonStyle: secondaryButtonStyle ?? this.secondaryButtonStyle,
+    avoidKeyboard: avoidKeyboard ?? this.avoidKeyboard,
   );
 }

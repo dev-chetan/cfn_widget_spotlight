@@ -1,3 +1,11 @@
+## 0.0.3
+
+* Add per-target card color, radius, padding, elevation, and text styles.
+* Add global and per-target primary and secondary button styles.
+* Add a custom navigation builder for fully custom progress and buttons.
+* Add rich default-card body builders for structured content.
+* Keep guide cards inside the visible area when the keyboard is open.
+
 ## 0.0.2
 
 * Document the complete public API with dartdoc comments.

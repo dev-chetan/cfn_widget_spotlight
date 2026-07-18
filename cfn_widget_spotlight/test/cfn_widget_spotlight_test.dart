@@ -118,6 +118,57 @@ void main() {
     expect(find.text('Custom target 2'), findsOneWidget);
   });
 
+  testWidgets('customizes the default card, button, and navigation row', (
+    tester,
+  ) async {
+    final targetKey = GlobalKey();
+    SpotlightResult? result;
+
+    await tester.pumpWidget(
+      _TestApp(
+        targetKey: targetKey,
+        onShow: (context) async {
+          result = await CfnWidgetSpotlight.show(
+            context,
+            target: SpotlightTarget(
+              key: targetKey,
+              title: 'Styled card',
+              bodyBuilder: (context, details) => const Text('Rich body'),
+              cardColor: Colors.black,
+              cardBorderRadius: BorderRadius.circular(36),
+              cardPadding: const EdgeInsets.all(24),
+              navigationBuilder: (context, navigation) => FilledButton(
+                onPressed: navigation.next,
+                style: FilledButton.styleFrom(backgroundColor: Colors.orange),
+                child: const Text('Custom action'),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+
+    await tester.tap(find.text('Show'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Styled card'), findsOneWidget);
+    expect(find.text('Rich body'), findsOneWidget);
+    expect(find.text('Custom action'), findsOneWidget);
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Material &&
+            widget.color == Colors.black &&
+            widget.borderRadius == BorderRadius.circular(36),
+      ),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.text('Custom action'));
+    await tester.pumpAndSettle();
+    expect(result?.completed, isTrue);
+  });
+
   testWidgets('can dismiss by tapping the barrier', (tester) async {
     final targetKey = GlobalKey();
     SpotlightResult? result;
@@ -170,6 +221,30 @@ void main() {
 
     final targetRect = tester.getRect(find.byKey(targetKey));
     final cardRect = tester.getRect(find.byKey(cardKey));
+    expect(cardRect.overlaps(targetRect), isFalse);
+  });
+
+  testWidgets('keeps guide content above the software keyboard', (
+    tester,
+  ) async {
+    final targetKey = GlobalKey();
+    final cardKey = GlobalKey();
+    tester.view.viewInsets = FakeViewPadding(
+      bottom: 300 * tester.view.devicePixelRatio,
+    );
+    addTearDown(tester.view.resetViewInsets);
+
+    await tester.pumpWidget(
+      _KeyboardTargetApp(targetKey: targetKey, cardKey: cardKey),
+    );
+    await tester.tap(find.text('Show'));
+    await tester.pumpAndSettle();
+
+    final targetRect = tester.getRect(find.byKey(targetKey));
+    final cardRect = tester.getRect(find.byKey(cardKey));
+    final keyboardTop =
+        tester.view.physicalSize.height / tester.view.devicePixelRatio - 300;
+    expect(cardRect.bottom, lessThanOrEqualTo(keyboardTop));
     expect(cardRect.overlaps(targetRect), isFalse);
   });
 }
@@ -332,6 +407,56 @@ class _BottomTargetApp extends StatelessWidget {
                 child: const ColoredBox(color: Colors.blue),
               ),
               const SizedBox(height: 8),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _KeyboardTargetApp extends StatelessWidget {
+  const _KeyboardTargetApp({required this.targetKey, required this.cardKey});
+
+  final GlobalKey targetKey;
+  final GlobalKey cardKey;
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Builder(
+        builder: (context) => Scaffold(
+          resizeToAvoidBottomInset: false,
+          body: Column(
+            children: [
+              ElevatedButton(
+                onPressed: () {
+                  unawaited(
+                    CfnWidgetSpotlight.show(
+                      context,
+                      target: SpotlightTarget(
+                        key: targetKey,
+                        placement: SpotlightPlacement.below,
+                        contentBuilder: (context, details) => SizedBox(
+                          key: cardKey,
+                          width: 240,
+                          height: 140,
+                          child: const ColoredBox(color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+                child: const Text('Show'),
+              ),
+              const SizedBox(height: 160),
+              SizedBox(
+                key: targetKey,
+                width: 160,
+                height: 48,
+                child: const ColoredBox(color: Colors.blue),
+              ),
+              const Spacer(),
             ],
           ),
         ),

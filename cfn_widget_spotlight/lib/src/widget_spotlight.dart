@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter/gestures.dart';
@@ -308,6 +309,16 @@ class _TargetContent extends StatelessWidget {
     final card =
         target.contentBuilder?.call(context, details) ??
         _DefaultCard(target: target, details: details, theme: theme);
+    final mediaQuery = MediaQuery.of(context);
+    final bottomObstruction = theme.avoidKeyboard
+        ? math.max(mediaQuery.padding.bottom, mediaQuery.viewInsets.bottom)
+        : mediaQuery.padding.bottom;
+    final effectiveScreenPadding = EdgeInsets.fromLTRB(
+      theme.screenPadding.left + mediaQuery.padding.left,
+      theme.screenPadding.top + mediaQuery.padding.top,
+      theme.screenPadding.right + mediaQuery.padding.right,
+      theme.screenPadding.bottom + bottomObstruction,
+    );
     return Positioned.fill(
       child: CustomMultiChildLayout(
         delegate: _TargetLayoutDelegate(
@@ -319,7 +330,7 @@ class _TargetContent extends StatelessWidget {
           maxContentWidth: target.maxContentWidth,
           pointerSize: target.showPointer ? theme.pointerSize : Size.zero,
           pointerEdgeInset: theme.cardBorderRadius.topLeft.x,
-          screenPadding: theme.screenPadding,
+          screenPadding: effectiveScreenPadding,
         ),
         children: [
           LayoutId(
@@ -369,60 +380,86 @@ class _DefaultCard extends StatelessWidget {
     final nextLabel =
         target.nextLabel ??
         (details.isLastStep ? theme.doneLabel : theme.nextLabel);
+    final backLabel = target.backLabel ?? theme.backLabel;
+    final navigationDetails = SpotlightNavigationDetails(
+      controller: details.controller,
+      stepIndex: details.stepIndex,
+      stepCount: details.stepCount,
+      nextLabel: nextLabel,
+      backLabel: backLabel,
+    );
+    final body = target.bodyBuilder?.call(context, details);
     return Material(
-      color: theme.cardColor,
-      elevation: theme.cardElevation,
+      color: target.cardColor ?? theme.cardColor,
+      elevation: target.cardElevation ?? theme.cardElevation,
       shadowColor: Colors.black38,
-      borderRadius: theme.cardBorderRadius,
+      borderRadius: target.cardBorderRadius ?? theme.cardBorderRadius,
       clipBehavior: Clip.antiAlias,
       child: Padding(
-        padding: theme.cardPadding,
+        padding: target.cardPadding ?? theme.cardPadding,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (target.title case final title?)
-              Text(title, style: theme.titleStyle),
+              Text(title, style: target.titleStyle ?? theme.titleStyle),
             if (target.title != null && target.description != null)
               const SizedBox(height: 6),
             if (target.description case final description?)
-              Text(description, style: theme.descriptionStyle),
+              Text(
+                description,
+                style: target.descriptionStyle ?? theme.descriptionStyle,
+              ),
+            if (body != null) ...[
+              if (target.title != null || target.description != null)
+                const SizedBox(height: 12),
+              body,
+            ],
             if (target.showNavigation) ...[
               const SizedBox(height: 12),
-              Row(
-                children: [
-                  Text(
-                    '${details.stepIndex + 1} of ${details.stepCount}',
-                    style: theme.progressStyle,
-                  ),
-                  const Spacer(),
-                  if (!details.isFirstStep) ...[
-                    OutlinedButton(
-                      onPressed: details.controller.previous,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: theme.secondaryForegroundColor,
+              if (target.navigationBuilder case final builder?)
+                builder(context, navigationDetails)
+              else
+                Row(
+                  children: [
+                    Text(
+                      navigationDetails.progressLabel,
+                      style: target.progressStyle ?? theme.progressStyle,
+                    ),
+                    const Spacer(),
+                    if (navigationDetails.canGoBack) ...[
+                      OutlinedButton(
+                        onPressed: navigationDetails.back,
+                        style:
+                            target.secondaryButtonStyle ??
+                            theme.secondaryButtonStyle ??
+                            OutlinedButton.styleFrom(
+                              foregroundColor: theme.secondaryForegroundColor,
+                            ),
+                        child: Text(backLabel),
                       ),
-                      child: Text(target.backLabel ?? theme.backLabel),
+                      const SizedBox(width: 8),
+                    ],
+                    FilledButton(
+                      onPressed: navigationDetails.next,
+                      style:
+                          target.primaryButtonStyle ??
+                          theme.primaryButtonStyle ??
+                          FilledButton.styleFrom(
+                            backgroundColor: theme.primaryColor,
+                            foregroundColor: theme.primaryForegroundColor,
+                          ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(nextLabel),
+                          const SizedBox(width: 8),
+                          const Icon(Icons.arrow_forward, size: 16),
+                        ],
+                      ),
                     ),
-                    const SizedBox(width: 8),
                   ],
-                  FilledButton(
-                    onPressed: details.controller.next,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: theme.primaryColor,
-                      foregroundColor: theme.primaryForegroundColor,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(nextLabel),
-                        const SizedBox(width: 8),
-                        const Icon(Icons.arrow_forward, size: 16),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+                ),
             ],
           ],
         ),
