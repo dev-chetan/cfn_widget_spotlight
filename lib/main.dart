@@ -144,6 +144,12 @@ class _SpotlightDemoScreenState extends State<SpotlightDemoScreen> {
     _showResult(result);
   }
 
+  void _openThesisDemo() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const ThesisSpotlightDemo()),
+    );
+  }
+
   void _showResult(SpotlightResult result) {
     if (!mounted) return;
     final message = switch (result.reason) {
@@ -206,6 +212,13 @@ class _SpotlightDemoScreenState extends State<SpotlightDemoScreen> {
             title: 'Guided tour',
             subtitle: 'Move through four targets using next and back.',
             onTap: () => unawaited(_showTour()),
+          ),
+          const SizedBox(height: 10),
+          _DemoButton(
+            icon: Icons.keyboard_alt_outlined,
+            title: 'Keyboard & rich content',
+            subtitle: 'Try a five-step thesis tour while typing.',
+            onTap: _openThesisDemo,
           ),
           const SizedBox(height: 24),
           const Text(
@@ -394,6 +407,324 @@ class _FeatureCard extends StatelessWidget {
           Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
           const SizedBox(height: 4),
           Text(value, style: TextStyle(color: Colors.grey.shade600)),
+        ],
+      ),
+    );
+  }
+}
+
+class ThesisSpotlightDemo extends StatefulWidget {
+  const ThesisSpotlightDemo({super.key});
+
+  @override
+  State<ThesisSpotlightDemo> createState() => _ThesisSpotlightDemoState();
+}
+
+class _ThesisSpotlightDemoState extends State<ThesisSpotlightDemo> {
+  final _assetKey = GlobalKey();
+  final _sentimentKey = GlobalKey();
+  final _targetKey = GlobalKey();
+  final _thesisKey = GlobalKey();
+  final _continueKey = GlobalKey();
+  final _focusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  Future<void> _startTour() async {
+    _focusNode.requestFocus();
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+    if (!mounted) return;
+
+    final result = await CfnWidgetSpotlight.showTour(
+      context,
+      theme: const SpotlightThemeData().copyWith(
+        primaryColor: const Color(0xFF087BFF),
+        cardBorderRadius: BorderRadius.circular(24),
+        avoidKeyboard: true,
+      ),
+      barrierDismissible: true,
+      steps: [
+        SpotlightStep.single(
+          SpotlightTarget(
+            key: _assetKey,
+            title: 'Attach an Asset',
+            description:
+                'Connect the investment or company this thesis is about.',
+            placement: SpotlightPlacement.below,
+            borderRadius: BorderRadius.circular(100),
+          ),
+        ),
+        SpotlightStep.single(
+          SpotlightTarget(
+            key: _thesisKey,
+            title: 'Write Your Thesis',
+            description:
+                'Explain your view clearly so other investors can understand '
+                'your reasoning.',
+            placement: SpotlightPlacement.above,
+            borderRadius: BorderRadius.circular(18),
+          ),
+        ),
+        SpotlightStep.single(
+          SpotlightTarget(
+            key: _sentimentKey,
+            title: 'What’s your outlook?',
+            placement: SpotlightPlacement.below,
+            borderRadius: BorderRadius.circular(100),
+            cardBorderRadius: BorderRadius.circular(24),
+            bodyBuilder: (context, details) => const Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _OutlookRow(
+                  color: Color(0xFF16A34A),
+                  icon: Icons.trending_up,
+                  title: 'Bullish',
+                  subtitle: 'Price will go up',
+                ),
+                _OutlookRow(
+                  color: Color(0xFFEF233C),
+                  icon: Icons.trending_down,
+                  title: 'Bearish',
+                  subtitle: 'Price will go down',
+                ),
+                _OutlookRow(
+                  color: Color(0xFFFFB000),
+                  icon: Icons.horizontal_rule,
+                  title: 'Neutral',
+                  subtitle: 'Price will stay within a range',
+                ),
+              ],
+            ),
+          ),
+        ),
+        SpotlightStep.single(
+          SpotlightTarget(
+            key: _targetKey,
+            title: 'Set your thesis target (Optional)',
+            description: 'You can specify:',
+            placement: SpotlightPlacement.below,
+            borderRadius: BorderRadius.circular(100),
+            cardBorderRadius: BorderRadius.circular(24),
+            bodyBuilder: (context, details) => const Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _DefinitionRow('Current Price', 'The current market price'),
+                _DefinitionRow('Entry Price', 'Your ideal entry price'),
+                _DefinitionRow('Target Price', 'Your expected target price'),
+                _DefinitionRow('Time Horizon', 'The timeframe for your thesis'),
+              ],
+            ),
+          ),
+        ),
+        SpotlightStep.single(
+          SpotlightTarget(
+            key: _continueKey,
+            title: 'Publish Your Thesis',
+            description:
+                'Review your selections, then continue when you are ready.',
+            placement: SpotlightPlacement.below,
+            borderRadius: BorderRadius.circular(100),
+            nextLabel: 'Finish',
+          ),
+        ),
+      ],
+    );
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          result.completed ? 'Thesis tour completed' : 'Tour closed',
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'Asset Thesis',
+          style: TextStyle(fontWeight: FontWeight.w700),
+        ),
+        actions: [
+          TextButton(
+            key: _continueKey,
+            onPressed: () {},
+            child: const Text('Continue'),
+          ),
+          IconButton(
+            tooltip: 'Start spotlight tour',
+            onPressed: () => unawaited(_startTour()),
+            icon: const Icon(Icons.play_circle_outline),
+          ),
+        ],
+      ),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+        children: [
+          const Text(
+            'What’s your investment thesis?',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              _ThesisChip(
+                targetKey: _assetKey,
+                icon: Icons.attach_money,
+                label: 'Asset',
+              ),
+              const SizedBox(width: 8),
+              _ThesisChip(
+                targetKey: _sentimentKey,
+                icon: Icons.bar_chart,
+                label: 'Sentiment',
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _ThesisChip(
+                  targetKey: _targetKey,
+                  icon: Icons.ads_click,
+                  label: 'Target (opt.)',
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          TextField(
+            key: _thesisKey,
+            focusNode: _focusNode,
+            autofocus: true,
+            minLines: 5,
+            maxLines: 8,
+            decoration: InputDecoration(
+              hintText: 'What makes you believe in this investment?',
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(18),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          FilledButton.icon(
+            onPressed: () => unawaited(_startTour()),
+            icon: const Icon(Icons.play_arrow),
+            label: const Text('Start thesis tour'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ThesisChip extends StatelessWidget {
+  const _ThesisChip({
+    required this.targetKey,
+    required this.icon,
+    required this.label,
+  });
+
+  final GlobalKey targetKey;
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      key: targetKey,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(100),
+        border: Border.all(color: const Color(0xFFD8E5F4)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 17, color: const Color(0xFF58708F)),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(color: Color(0xFF58708F)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OutlookRow extends StatelessWidget {
+  const _OutlookRow({
+    required this.color,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
+
+  final Color color;
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 14,
+            backgroundColor: color,
+            child: Icon(icon, color: Colors.white, size: 17),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                Text(
+                  subtitle,
+                  style: const TextStyle(color: Color(0xFF7A8CA8)),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DefinitionRow extends StatelessWidget {
+  const _DefinitionRow(this.title, this.description);
+
+  final String title;
+  final String description;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
+          Text(description),
         ],
       ),
     );
