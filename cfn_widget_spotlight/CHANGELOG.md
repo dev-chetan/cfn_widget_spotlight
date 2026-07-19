@@ -1,3 +1,9 @@
+## 0.0.4
+
+* Add a published multi-target tour example with Next and Back navigation.
+* Demonstrate highlighting a tab and a shared floating action button together.
+* Document the stable `GlobalKey` pattern for a FAB that changes by tour step.
+
 ## 0.0.3
 
 * Add per-target card color, radius, padding, elevation, and text styles.

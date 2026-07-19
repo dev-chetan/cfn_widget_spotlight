@@ -45,4 +45,28 @@ void main() {
     expect(find.text('Bearish'), findsOneWidget);
     expect(find.text('Neutral'), findsOneWidget);
   });
+
+  testWidgets('shows a tab and shared FAB in each tour step', (tester) async {
+    await tester.pumpWidget(const SpotlightDemoApp());
+
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, -280));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Shared FAB multi-target tour'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Start shared FAB tour'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Keep Members Updated'), findsOneWidget);
+    expect(find.text('Stay informed and share updates.'), findsOneWidget);
+    expect(find.text('1 of 3'), findsOneWidget);
+
+    await tester.tap(find.text('Next'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Share Investment Ideas'), findsOneWidget);
+    expect(find.text('Explore and share investment ideas.'), findsOneWidget);
+    expect(find.text('2 of 3'), findsOneWidget);
+    expect(find.text('Back'), findsOneWidget);
+  });
 }

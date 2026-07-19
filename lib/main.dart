@@ -150,6 +150,12 @@ class _SpotlightDemoScreenState extends State<SpotlightDemoScreen> {
     );
   }
 
+  void _openSharedFabDemo() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const SharedFabSpotlightDemo()),
+    );
+  }
+
   void _showResult(SpotlightResult result) {
     if (!mounted) return;
     final message = switch (result.reason) {
@@ -212,6 +218,14 @@ class _SpotlightDemoScreenState extends State<SpotlightDemoScreen> {
             title: 'Guided tour',
             subtitle: 'Move through four targets using next and back.',
             onTap: () => unawaited(_showTour()),
+          ),
+          const SizedBox(height: 10),
+          _DemoButton(
+            icon: Icons.control_point_duplicate_outlined,
+            title: 'Shared FAB multi-target tour',
+            subtitle:
+                'Highlight a tab and one shared floating button per step.',
+            onTap: _openSharedFabDemo,
           ),
           const SizedBox(height: 10),
           _DemoButton(
@@ -408,6 +422,220 @@ class _FeatureCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(value, style: TextStyle(color: Colors.grey.shade600)),
         ],
+      ),
+    );
+  }
+}
+
+class SharedFabSpotlightDemo extends StatefulWidget {
+  const SharedFabSpotlightDemo({super.key});
+
+  @override
+  State<SharedFabSpotlightDemo> createState() => _SharedFabSpotlightDemoState();
+}
+
+class _SharedFabSpotlightDemoState extends State<SharedFabSpotlightDemo> {
+  final _announcementsKey = GlobalKey();
+  final _thesesKey = GlobalKey();
+  final _portfolioKey = GlobalKey();
+  final _floatingButtonKey = GlobalKey();
+
+  int _selectedTab = 0;
+
+  static const _tabLabels = ['Announcements', 'Theses', 'Portfolio'];
+
+  SpotlightThemeData get _theme => const SpotlightThemeData().copyWith(
+    barrierColor: const Color(0xA90B1220),
+    blurSigma: 3,
+    primaryColor: const Color(0xFF087BFF),
+    highlightBorderColor: const Color(0xFF8AC5FF),
+    cardBorderRadius: BorderRadius.circular(22),
+  );
+
+  Future<void> _startTour() async {
+    if (_selectedTab != 0) {
+      setState(() => _selectedTab = 0);
+      await WidgetsBinding.instance.endOfFrame;
+    }
+    if (!mounted) return;
+
+    await CfnWidgetSpotlight.showTour(
+      context,
+      theme: _theme,
+      barrierDismissible: true,
+      onStepChanged: (index) {
+        if (mounted && _selectedTab != index) {
+          setState(() => _selectedTab = index);
+        }
+      },
+      steps: [
+        _buildStep(
+          tabKey: _announcementsKey,
+          tabTitle: 'Announcements',
+          tabDescription: 'Stay informed and share updates.',
+          actionTitle: 'Keep Members Updated',
+          actionDescription:
+              'Share announcements, events, and important notices.',
+        ),
+        _buildStep(
+          tabKey: _thesesKey,
+          tabTitle: 'Theses',
+          tabDescription: 'Explore and share investment ideas.',
+          actionTitle: 'Share Investment Ideas',
+          actionDescription:
+              'Browse member theses, then tap the + button to publish yours.',
+        ),
+        _buildStep(
+          tabKey: _portfolioKey,
+          tabTitle: 'Portfolio',
+          tabDescription: 'Track and manage your space portfolio.',
+          actionTitle: 'Manage Your Space Portfolio',
+          actionDescription:
+              'Use the transact button to place trades and manage positions.',
+        ),
+      ],
+    );
+  }
+
+  SpotlightStep _buildStep({
+    required GlobalKey tabKey,
+    required String tabTitle,
+    required String tabDescription,
+    required String actionTitle,
+    required String actionDescription,
+  }) {
+    return SpotlightStep(
+      targets: [
+        SpotlightTarget(
+          key: tabKey,
+          title: tabTitle,
+          description: tabDescription,
+          placement: SpotlightPlacement.below,
+          borderRadius: BorderRadius.circular(100),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          showNavigation: false,
+        ),
+        SpotlightTarget(
+          key: _floatingButtonKey,
+          title: actionTitle,
+          description: actionDescription,
+          placement: SpotlightPlacement.above,
+          shape: SpotlightShape.circle,
+          padding: const EdgeInsets.all(6),
+          showNavigation: true,
+        ),
+      ],
+    );
+  }
+
+  IconData get _floatingIcon => switch (_selectedTab) {
+    0 => Icons.campaign_outlined,
+    1 => Icons.add,
+    _ => Icons.swap_vert,
+  };
+
+  String get _pageTitle => switch (_selectedTab) {
+    0 => 'Latest announcements',
+    1 => 'Investment theses',
+    _ => 'Space portfolio',
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'Shared FAB Tour',
+          style: TextStyle(fontWeight: FontWeight.w700),
+        ),
+        actions: [
+          IconButton(
+            tooltip: 'Start shared FAB tour',
+            onPressed: () => unawaited(_startTour()),
+            icon: const Icon(Icons.play_circle_outline),
+          ),
+        ],
+      ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+            child: Row(
+              children: List.generate(_tabLabels.length, (index) {
+                final keys = [_announcementsKey, _thesesKey, _portfolioKey];
+                final selected = index == _selectedTab;
+                return Expanded(
+                  child: InkWell(
+                    key: keys[index],
+                    onTap: () => setState(() => _selectedTab = index),
+                    borderRadius: BorderRadius.circular(100),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        color: selected
+                            ? const Color(0xFFEAF3FF)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(100),
+                        border: Border(
+                          bottom: BorderSide(
+                            width: 3,
+                            color: selected
+                                ? const Color(0xFF087BFF)
+                                : Colors.transparent,
+                          ),
+                        ),
+                      ),
+                      child: Text(
+                        _tabLabels[index],
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: selected
+                              ? const Color(0xFF087BFF)
+                              : Colors.grey.shade600,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+          Expanded(
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(_floatingIcon, size: 72, color: const Color(0xFF87BFFF)),
+                  const SizedBox(height: 16),
+                  Text(
+                    _pageTitle,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text('Press play to start the multi-target tour.'),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: KeyedSubtree(
+        key: _floatingButtonKey,
+        child: FloatingActionButton(
+          heroTag: 'shared-fab-demo',
+          onPressed: () {},
+          backgroundColor: const Color(0xFF087BFF),
+          foregroundColor: Colors.white,
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 180),
+            child: Icon(_floatingIcon, key: ValueKey(_selectedTab)),
+          ),
+        ),
       ),
     );
   }
