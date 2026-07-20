@@ -329,7 +329,8 @@ class _TargetContent extends StatelessWidget {
           offset: target.offset,
           maxContentWidth: target.maxContentWidth,
           pointerSize: target.showPointer ? theme.pointerSize : Size.zero,
-          pointerEdgeInset: theme.cardBorderRadius.topLeft.x,
+          pointerEdgeInset:
+              (target.cardBorderRadius ?? theme.cardBorderRadius).topLeft.x,
           screenPadding: effectiveScreenPadding,
         ),
         children: [
@@ -389,11 +390,16 @@ class _DefaultCard extends StatelessWidget {
       backLabel: backLabel,
     );
     final body = target.bodyBuilder?.call(context, details);
+    final cardBorderRadius = target.cardBorderRadius ?? theme.cardBorderRadius;
+    final cardBorderSide = target.cardBorderSide ?? theme.cardBorderSide;
     return Material(
       color: target.cardColor ?? theme.cardColor,
       elevation: target.cardElevation ?? theme.cardElevation,
       shadowColor: Colors.black38,
-      borderRadius: target.cardBorderRadius ?? theme.cardBorderRadius,
+      shape: RoundedRectangleBorder(
+        borderRadius: cardBorderRadius,
+        side: cardBorderSide,
+      ),
       clipBehavior: Clip.antiAlias,
       child: Padding(
         padding: target.cardPadding ?? theme.cardPadding,

@@ -182,6 +182,7 @@ final spotlightTheme = const SpotlightThemeData().copyWith(
   primaryColor: Colors.deepPurple,
   highlightBorderColor: Colors.white,
   cardBorderRadius: BorderRadius.circular(28),
+  cardBorderSide: const BorderSide(color: Colors.white, width: 1.5),
   animationDuration: const Duration(milliseconds: 300),
 );
 
@@ -208,6 +209,7 @@ SpotlightTarget(
   description: 'The standard content with your own visual design.',
   cardColor: const Color(0xFF171B2E),
   cardBorderRadius: BorderRadius.circular(32),
+  cardBorderSide: const BorderSide(color: Colors.orange, width: 2),
   cardPadding: const EdgeInsets.all(24),
   cardElevation: 18,
   titleStyle: const TextStyle(

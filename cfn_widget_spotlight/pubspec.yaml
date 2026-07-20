@@ -1,6 +1,6 @@
 name: cfn_widget_spotlight
 description: Customizable spotlight overlays and guided tours for Flutter.
-version: 0.0.4
+version: 0.0.5
 repository: https://github.com/dev-chetan/cfn_widget_spotlight
 issue_tracker: https://github.com/dev-chetan/cfn_widget_spotlight/issues
 

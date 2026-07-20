@@ -136,6 +136,7 @@ void main() {
               bodyBuilder: (context, details) => const Text('Rich body'),
               cardColor: Colors.black,
               cardBorderRadius: BorderRadius.circular(36),
+              cardBorderSide: const BorderSide(color: Colors.orange, width: 2),
               cardPadding: const EdgeInsets.all(24),
               navigationBuilder: (context, navigation) => FilledButton(
                 onPressed: navigation.next,
@@ -159,7 +160,11 @@ void main() {
         (widget) =>
             widget is Material &&
             widget.color == Colors.black &&
-            widget.borderRadius == BorderRadius.circular(36),
+            widget.shape ==
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(36),
+                  side: const BorderSide(color: Colors.orange, width: 2),
+                ),
       ),
       findsOneWidget,
     );

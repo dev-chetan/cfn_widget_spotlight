@@ -1,3 +1,7 @@
+## 0.0.5
+
+* Add global and per-target card border color, width, and style configuration.
+
 ## 0.0.4
 
 * Add a published multi-target tour example with Next and Back navigation.

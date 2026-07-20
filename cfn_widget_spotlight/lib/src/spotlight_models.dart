@@ -210,6 +210,7 @@ class SpotlightTarget {
     this.semanticLabel,
     this.cardColor,
     this.cardBorderRadius,
+    this.cardBorderSide,
     this.cardPadding,
     this.cardElevation,
     this.titleStyle,
@@ -299,6 +300,9 @@ class SpotlightTarget {
   /// Overrides [SpotlightThemeData.cardBorderRadius] for this target.
   final BorderRadius? cardBorderRadius;
 
+  /// Overrides [SpotlightThemeData.cardBorderSide] for this target.
+  final BorderSide? cardBorderSide;
+
   /// Overrides [SpotlightThemeData.cardPadding] for this target.
   final EdgeInsets? cardPadding;
 
@@ -354,6 +358,7 @@ class SpotlightThemeData {
     this.highlightShadowColor = const Color(0x73000000),
     this.cardColor = const Color(0xFFF8FAFD),
     this.cardBorderRadius = const BorderRadius.all(Radius.circular(22)),
+    this.cardBorderSide = BorderSide.none,
     this.cardPadding = const EdgeInsets.all(16),
     this.cardElevation = 10,
     this.titleStyle = const TextStyle(
@@ -413,6 +418,9 @@ class SpotlightThemeData {
 
   /// Corner radii of default content cards.
   final BorderRadius cardBorderRadius;
+
+  /// Border painted around default content cards.
+  final BorderSide cardBorderSide;
 
   /// Inner padding of default content cards.
   final EdgeInsets cardPadding;
@@ -482,6 +490,7 @@ class SpotlightThemeData {
     Color? highlightShadowColor,
     Color? cardColor,
     BorderRadius? cardBorderRadius,
+    BorderSide? cardBorderSide,
     EdgeInsets? cardPadding,
     double? cardElevation,
     TextStyle? titleStyle,
@@ -511,6 +520,7 @@ class SpotlightThemeData {
     highlightShadowColor: highlightShadowColor ?? this.highlightShadowColor,
     cardColor: cardColor ?? this.cardColor,
     cardBorderRadius: cardBorderRadius ?? this.cardBorderRadius,
+    cardBorderSide: cardBorderSide ?? this.cardBorderSide,
     cardPadding: cardPadding ?? this.cardPadding,
     cardElevation: cardElevation ?? this.cardElevation,
     titleStyle: titleStyle ?? this.titleStyle,
